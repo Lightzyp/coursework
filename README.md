@@ -1,6 +1,18 @@
-# Daniel Macharia — Coursework
+# Daniel Macharia: Coursework
 
-Coursework and course exercises from my East Tennessee State University course collection, organized for browsing code, technical writing and research.
+Software, database, security and writing coursework from East Tennessee State University. Start with the featured projects, or browse every subject in the course index.
+
+## Featured projects
+
+| Project | What it does | Tech and skills |
+| --- | --- | --- |
+| [Library Management System](csci-2910/lab-06-library-tests/) | Manages books, users, loans and returns in a browser, with book and user records saved to CSV | C#, ASP.NET Core Blazor, xUnit test source |
+| [Doctor and Patient Appointments](csci-3110/lab-03-many-to-many-crud/) | Links doctors and patients through an explicit many-to-many `Appointment` entity with dates and notes | ASP.NET Core MVC, Entity Framework Core, SQLite, repositories |
+| [ShinraNet API](csci-2910/project-01-shinranet/) | Provides REST endpoints for the users, posts and likes of a social media project (backend only) | Python, FastAPI, SQLite, SQL |
+| [Modular Course Catalog](csci-3110/lab-04-course-catalog/) | Validates course data and models enrollment, open seats and waitlists, with results in the browser console | JavaScript modules, classes, closures, ASP.NET MVC host page |
+| [Security Lab Reports](csci-3500/) | Reports on vulnerability scanning and firewall rules on classroom virtual machines, plus policy analysis | Kali Linux, Nessus, Nmap, tcpdump, iptables |
+
+## Course index
 
 | Course | Work included |
 | --- | --- |
@@ -18,17 +30,9 @@ Coursework and course exercises from my East Tennessee State University course c
 | [Psychology coursework](psyc-1310/) | Non-sensitive psychology coursework from the unsorted collection |
 | [Additional coursework](additional-coursework/) | Other verified work, grouped by subject |
 
-## Selected projects
-
-- [Library management with xUnit tests](csci-2910/lab-06-library-tests/)
-- [ShinraNet FastAPI backend](csci-2910/project-01-shinranet/)
-- [Doctor/patient appointment relationships](csci-3110/lab-03-many-to-many-crud/)
-- [Modular JavaScript course catalog](csci-3110/lab-04-course-catalog/)
-- [C# adventure game](csci-1260/adventure-game/)
-- [Security reports](csci-3500/) and [research writing](engl-1020/)
-
 ## About this archive
 
-These are historical student artifacts, including classroom exercises and projects at different stages of development. Course indexes describe their provenance and any known limitations. Source code is preserved as found apart from privacy cleanup; the collection has not been built or run as a single application.
-
-Public copies remove credentials, private student identifiers and contact records. Some Office documents are shared as cleaned Markdown extracts so their authored text is available without screenshots, comments or hidden metadata. Original files remain unchanged locally. Instructor-only materials, blank templates, graded exports, redundant archives, build dependencies and work whose authorship or privacy could not be established are excluded. This archive covers the supplied course collection and does not claim to include every assignment on the computer.
+- **Provenance:** these are historical student artifacts, including classroom exercises and projects at different stages of development. Course indexes describe their provenance and any known limitations.
+- **Source code:** code is preserved as found apart from privacy cleanup. The collection has not been built or run as a single application.
+- **Privacy:** public copies remove credentials, private student identifiers and contact records. Some Office documents are shared as cleaned Markdown extracts without screenshots, comments or hidden metadata.
+- **Exclusions:** instructor-only materials, blank templates, graded exports, redundant archives, build dependencies and work whose authorship or privacy could not be established are left out. The archive does not claim to include every assignment.
