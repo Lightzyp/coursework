@@ -1,0 +1,195 @@
+﻿
+@page "/notes"
+@using AdventureGameManual.Models
+@inject AdventureGameManual.Services.NoteService NoteSvc
+@inject AdventureGameManual.Services.GameDataService Data
+
+<PageTitle>Notes</PageTitle>
+<h1>Notes</h1>
+
+<!-- Create new note -->
+<EditForm Model="_newNote" OnValidSubmit="CreateNote">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label>Title</label>
+        <InputText class="form-control" @bind-Value="_newNote.Title" />
+    </div>
+    <div class="mb-3">
+        <label>Content</label>
+        <InputTextArea class="form-control" @bind-Value="_newNote.Content" rows="4" />
+    </div>
+    <button class="btn btn-primary" type="submit">Add Note</button>
+</EditForm>
+
+<hr />
+
+@foreach (var note in NoteSvc.Notes)
+{
+    <div class="card mb-3 p-3">
+        <h4>@note.Title</h4>
+        <small>@note.UpdatedAt.ToLocalTime()</small>
+        <p style="white-space:pre-wrap">@note.Content</p>
+
+        <h6>References</h6>
+        @if (note.References.Count == 0)
+        {
+            <p><em>No references yet.</em></p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var r in note.References)
+                {
+                    var url = r.Kind == ReferenceKind.Character ? $"/characters/{r.TargetId}" : $"/items/{r.TargetId}";
+                    var label = r.Label ??
+                    (r.Kind == ReferenceKind.Character
+                    ? Data.GetCharacter(r.TargetId)?.Name ?? $"Character #{r.TargetId}"
+                    : Data.GetItem(r.TargetId)?.Name ?? $"Item #{r.TargetId}");
+                    <li>
+                        <a href="@url">@label</a>
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => RemoveRef(note.Id, r)">Remove</button>
+                    </li>
+                }
+            </ul>
+        }
+
+        <!-- Add reference UI -->
+        <div class="d-flex gap-2 align-items-end">
+            <div>
+                <label>Type</label>
+                <select class="form-select" @bind="@_refKind[note.Id]">
+                    <option value="@ReferenceKind.Character">Character</option>
+                    <option value="@ReferenceKind.Item">Item</option>
+                </select>
+            </div>
+
+            @if (_refKind.TryGetValue(note.Id, out var k) && k == ReferenceKind.Character)
+            {
+                <div>
+                    <label>Character</label>
+                    <select class="form-select" @bind="@_refTargetId[note.Id]">
+                        @foreach (var c in Data.Characters)
+                        {
+                            <option value="@c.Id">@c.Name (@c.Id)</option>
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <label>Item</label>
+                    <select class="form-select" @bind="@_refTargetId[note.Id]">
+                        @foreach (var i in Data.Items)
+                        {
+                            <option value="@i.Id">@i.Name (@i.Id)</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div>
+                <label>Label (optional)</label>
+                <InputText class="form-control" @bind-Value="@_refLabel[note.Id]" />
+            </div>
+
+            <button class="btn btn-outline-primary" @onclick="() => AddRef(note.Id)">Add Reference</button>
+        </div>
+
+        <!-- Edit/Delete -->
+        @if (_editingId == note.Id)
+        {
+            <EditForm Model="_editBuffer" OnValidSubmit="SaveEdit">
+                <div class="mb-2 mt-3">
+                    <label>Title</label>
+                    <InputText class="form-control" @bind-Value="_editBuffer.Title" />
+                </div>
+                <div class="mb-2">
+                    <label>Content</label>
+                    <InputTextArea class="form-control" @bind-Value="_editBuffer.Content" rows="4" />
+                </div>
+                <button class="btn btn-success" type="submit">Save</button>
+                <button class="btn btn-secondary ms-2" type="button" @onclick="CancelEdit">Cancel</button>
+            </EditForm>
+        }
+        else
+        {
+            <div class="mt-2">
+                <button class="btn btn-outline-secondary" @onclick="() => BeginEdit(note)">Edit</button>
+                <button class="btn btn-outline-danger ms-2" @onclick="() => DeleteNote(note.Id)">Delete</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private Note _newNote = new();
+    private int _editingId = 0;
+    private Note _editBuffer = new();
+
+    private Dictionary<int, ReferenceKind> _refKind = new();
+    private Dictionary<int, int> _refTargetId = new();
+    private Dictionary<int, string?> _refLabel = new();
+
+    protected override void OnInitialized()
+    {
+        foreach (var n in NoteSvc.Notes)
+        {
+            _refKind[n.Id] = ReferenceKind.Character;
+            _refTargetId[n.Id] = Data.Characters.First().Id;
+            _refLabel[n.Id] = null;
+        }
+    }
+
+    private void CreateNote()
+    {
+        if (string.IsNullOrWhiteSpace(_newNote.Title)) return;
+        NoteSvc.Create(new Note { Title = _newNote.Title.Trim(), Content = _newNote.Content.Trim() });
+        _newNote = new();
+    }
+
+    private void BeginEdit(Note note)
+    {
+        _editingId = note.Id;
+        _editBuffer = new Note
+        {
+            Id = note.Id,
+            Title = note.Title,
+            Content = note.Content,
+            References = note.References.ToList()
+        };
+    }
+
+    private void SaveEdit()
+    {
+        NoteSvc.Update(_editBuffer);
+        _editingId = 0;
+    }
+
+    private void CancelEdit() => _editingId = 0;
+
+    private void DeleteNote(int id) => NoteSvc.Delete(id);
+
+    private void AddRef(int noteId)
+    {
+        var kind = _refKind.TryGetValue(noteId, out var k) ? k : ReferenceKind.Character;
+        var targetId = _refTargetId.TryGetValue(noteId, out var t) ? t : 0;
+        var label = _refLabel.TryGetValue(noteId, out var l) ? l : null;
+
+        if (targetId == 0) return;
+
+        NoteSvc.AddReference(noteId, new NoteReference
+        {
+            Kind = kind,
+            TargetId = targetId,
+            Label = string.IsNullOrWhiteSpace(label) ? null : label!.Trim()
+        });
+        StateHasChanged();
+    }
+
+    private void RemoveRef(int noteId, NoteReference reference)
+    {
+        NoteSvc.RemoveReference(noteId, reference);
+        StateHasChanged();
+    }
+}

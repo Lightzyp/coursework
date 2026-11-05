@@ -1,0 +1,45 @@
+@model Patient
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<h1>@Model.Name</h1>
+
+<h2 class="h4">Appointments</h2>
+<p>
+    <a class="btn btn-primary" asp-controller="Appointment" asp-action="CreateForPatient" asp-route-id="@Model.Id">Schedule Appointment</a>
+</p>
+
+@if (Model.Appointments.Count == 0)
+{
+    <p>This patient has no appointments yet.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Doctor</th>
+                <th scope="col">Date</th>
+                <th scope="col">Notes</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appointment in Model.Appointments.OrderBy(a => a.Date))
+            {
+                <tr>
+                    <td>@appointment.Doctor.Name</td>
+                    <td>@appointment.Date.ToString("g")</td>
+                    <td>@appointment.Notes</td>
+                    <td>
+                        <a asp-controller="Appointment" asp-action="Edit" asp-route-id="@appointment.Id" asp-route-from="Patient">Edit</a> |
+                        <a asp-controller="Appointment" asp-action="Delete" asp-route-id="@appointment.Id" asp-route-from="Patient">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-controller="Patients" asp-action="Index">Back to Patients</a>

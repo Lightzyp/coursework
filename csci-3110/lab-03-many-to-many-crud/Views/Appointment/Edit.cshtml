@@ -1,0 +1,44 @@
+@model AppointmentFormViewModel
+@{
+    ViewData["Title"] = "Edit Appointment";
+    var fromDoctor = Model.From == "Doctor";
+}
+
+<h1>Edit Appointment</h1>
+<dl class="row">
+    <dt class="col-sm-2">Doctor</dt>
+    <dd class="col-sm-10">@Model.DoctorName</dd>
+    <dt class="col-sm-2">Patient</dt>
+    <dd class="col-sm-10">@Model.PatientName</dd>
+</dl>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" asp-route-id="@Model.AppointmentId" asp-route-from="@Model.From" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label"></label>
+                <input asp-for="Date" class="form-control" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label"></label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            @if (fromDoctor)
+            {
+                <a class="btn btn-link" asp-controller="Doctors" asp-action="Details" asp-route-id="@Model.DoctorId">Cancel</a>
+            }
+            else
+            {
+                <a class="btn btn-link" asp-controller="Patients" asp-action="Details" asp-route-id="@Model.PatientId">Cancel</a>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

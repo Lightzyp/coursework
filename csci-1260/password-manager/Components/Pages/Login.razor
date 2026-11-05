@@ -1,0 +1,216 @@
+@page "/login"
+@layout LoginLayout
+@rendermode InteractiveServer
+@inject Project_4.Services.PasswordManagerService PasswordService
+@inject NavigationManager Navigation
+
+<PageTitle>Unlock Vaultly</PageTitle>
+
+<div class="login-page">
+    <section class="login-showcase">
+        <a class="login-brand" href="/">
+            <span class="login-brand-mark"><i class="bi bi-shield-lock-fill"></i></span>
+            <span>Vaultly</span>
+        </a>
+
+        <div class="login-copy">
+            <span class="eyebrow light">Private by design</span>
+            <h1>Your passwords deserve a quieter place.</h1>
+            <p>Keep your credentials encrypted locally, organize them simply, and lock the vault when you step away.</p>
+        </div>
+
+        <div class="login-security">
+            <div><i class="bi bi-lock-fill"></i><span>AES-256-GCM encryption</span></div>
+            <div><i class="bi bi-clock-fill"></i><span>Automatic lock after 5 minutes</span></div>
+            <div><i class="bi bi-hdd-fill"></i><span>Stored on this device</span></div>
+        </div>
+    </section>
+
+    <section class="login-panel">
+        <div class="login-card">
+            <div class="login-card-header">
+                <span class="eyebrow">Secure access</span>
+                @if (!PasswordService.IsMasterPasswordSet())
+                {
+                    <h2>Create your vault</h2>
+                    <p>Choose one memorable master password. It encrypts everything stored inside.</p>
+                }
+                else
+                {
+                    <h2>Welcome back</h2>
+                    <p>Enter your master password to unlock your encrypted vault.</p>
+                }
+            </div>
+
+            @if (!PasswordService.IsMasterPasswordSet())
+            {
+                <div class="field-group">
+                    <label for="master-password">Master password</label>
+                    <div class="input-with-action">
+                        <input id="master-password"
+                               class="form-control"
+                               type="@(_showPassword ? "text" : "password")"
+                               @bind="masterPassword"
+                               @bind:event="oninput"
+                               placeholder="At least 8 characters" />
+                        <button class="icon-button" type="button" @onclick="TogglePassword" title="Show or hide password">
+                            <i class="bi @(_showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                        </button>
+                    </div>
+                    <div class="strength-summary">
+                        <div class="strength-track"><span class="strength-fill @StrengthClass" style="width: @StrengthWidth%"></span></div>
+                        <span class="@StrengthClass">@PasswordStrength</span>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="confirm-password">Confirm master password</label>
+                    <input id="confirm-password"
+                           class="form-control"
+                           type="password"
+                           @bind="confirmPassword"
+                           @bind:event="oninput"
+                           placeholder="Enter it one more time" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="notice danger"><i class="bi bi-exclamation-circle-fill"></i><span>@errorMessage</span></div>
+                }
+
+                <button class="btn btn-primary btn-lg w-100" @onclick="CreateMasterPassword">
+                    Create encrypted vault <i class="bi bi-arrow-right"></i>
+                </button>
+
+                <div class="login-reminder">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Your master password cannot be recovered. Store it somewhere safe.</span>
+                </div>
+            }
+            else
+            {
+                <div class="field-group">
+                    <label for="unlock-password">Master password</label>
+                    <div class="input-with-action">
+                        <input id="unlock-password"
+                               class="form-control"
+                               type="@(_showPassword ? "text" : "password")"
+                               @bind="masterPassword"
+                               @bind:event="oninput"
+                               @onkeydown="HandleKeyPress"
+                               placeholder="Enter your master password" />
+                        <button class="icon-button" type="button" @onclick="TogglePassword" title="Show or hide password">
+                            <i class="bi @(_showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="notice danger"><i class="bi bi-exclamation-circle-fill"></i><span>@errorMessage</span></div>
+                }
+
+                <button class="btn btn-primary btn-lg w-100" @onclick="Unlock">
+                    Unlock vault <i class="bi bi-unlock-fill"></i>
+                </button>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private string masterPassword = "";
+    private string confirmPassword = "";
+    private string errorMessage = "";
+    private bool _showPassword;
+
+    private string PasswordStrength => GetPasswordStrength(masterPassword);
+    private string StrengthClass => PasswordStrength.ToLowerInvariant();
+    private int StrengthWidth => PasswordStrength switch
+    {
+        "Strong" => 100,
+        "Medium" => 62,
+        _ => string.IsNullOrEmpty(masterPassword) ? 0 : 30
+    };
+
+    private void TogglePassword() => _showPassword = !_showPassword;
+
+    private static string GetPasswordStrength(string password)
+    {
+        var specialChars = "!@$%^&*()_+=-[]{}|;:,.<>?/";
+        var score = 0;
+
+        if (password.Length >= 8) score++;
+        if (password.Length >= 12) score++;
+        if (password.Any(char.IsUpper)) score++;
+        if (password.Any(char.IsLower)) score++;
+        if (password.Any(char.IsDigit)) score++;
+        if (password.Any(specialChars.Contains)) score++;
+
+        return score switch
+        {
+            <= 2 => "Weak",
+            3 or 4 => "Medium",
+            _ => "Strong"
+        };
+    }
+
+    private void CreateMasterPassword()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(masterPassword))
+        {
+            errorMessage = "Master password cannot be empty.";
+            return;
+        }
+
+        if (masterPassword.Length < 8)
+        {
+            errorMessage = "Master password must be at least 8 characters.";
+            return;
+        }
+
+        if (masterPassword != confirmPassword)
+        {
+            errorMessage = "Passwords do not match.";
+            return;
+        }
+
+        if (PasswordStrength == "Weak")
+        {
+            errorMessage = "Please choose a stronger password.";
+            return;
+        }
+
+        if (PasswordService.CreateMasterPassword(masterPassword))
+            Navigation.NavigateTo("/");
+        else
+            errorMessage = PasswordService.LastError ?? "Failed to create master password.";
+    }
+
+    private void Unlock()
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(masterPassword))
+        {
+            errorMessage = "Please enter your master password.";
+            return;
+        }
+
+        if (PasswordService.UnlockWithMasterPassword(masterPassword))
+            Navigation.NavigateTo("/");
+        else
+        {
+            errorMessage = PasswordService.LastError ?? "Incorrect master password.";
+            masterPassword = "";
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            Unlock();
+    }
+}

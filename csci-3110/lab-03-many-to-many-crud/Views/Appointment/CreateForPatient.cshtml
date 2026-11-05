@@ -1,0 +1,39 @@
+@model CreateForPatientViewModel
+@{
+    ViewData["Title"] = "Schedule Appointment";
+}
+
+<h1>Schedule an appointment for @Model.Patient.Name</h1>
+<p>Choose a doctor:</p>
+
+@if (Model.Doctors.Count == 0)
+{
+    <p>There are no doctors to choose from.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Doctor</th>
+                <th scope="col">Specialty</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var doctor in Model.Doctors)
+            {
+                <tr>
+                    <td>@doctor.Name</td>
+                    <td>@doctor.Specialty</td>
+                    <td>
+                        @* Same order as the doctor side: doctorId in "id" (first), patientId second. *@
+                        <a asp-action="SetupForPatient" asp-route-id="@doctor.Id" asp-route-patientId="@Model.Patient.Id">Schedule Appointment</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-controller="Patients" asp-action="Index">Back to Patients</a>

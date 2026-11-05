@@ -1,0 +1,43 @@
+@model IEnumerable<DML01Controllers.Models.MyDictionaryEntry>
+
+@{
+    ViewData["Title"] = "The Words";
+}
+
+<h1>The Words</h1>
+
+<p>
+    <a asp-action="AddWord">Add a Word</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Word)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Meaning)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Word)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Meaning)
+            </td>
+        
+        </tr>
+}
+    </tbody>
+</table>
+
+<p>
+
+<a asp-action="Save">Save</a> |
+<a asp-action="Load">Load</a>
+
+</p>

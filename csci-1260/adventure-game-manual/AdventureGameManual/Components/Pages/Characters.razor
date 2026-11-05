@@ -1,0 +1,23 @@
+﻿
+@page "/characters"
+@using AdventureGameManual.Models
+@inject AdventureGameManual.Services.GameDataService Data
+
+
+<PageTitle>Characters</PageTitle>
+<h1>Characters</h1>
+
+@foreach (var group in Data.CharactersByType())
+{
+    <h3>@group.Key</h3>
+    <ul>
+        @foreach (var c in group)
+        {
+            <li><a href="@($"/characters/{c.Id}")">@c.Name</a></li>
+        }
+    </ul>
+}
+
+@code {
+
+}

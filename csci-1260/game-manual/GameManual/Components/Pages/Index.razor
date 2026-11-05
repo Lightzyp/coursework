@@ -1,0 +1,75 @@
+﻿<h3>Index</h3>
+@page "/"
+@using GameManual.Models
+@inject GameManual.Services.CharacterService CharacterService
+
+<h1>All Pokémon</h1>
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_characters.Count == 0 && _loading)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var c in _characters)
+        {
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="card h-100">
+                    <img src="@c.ImageUrl" class="card-img-top" alt="@c.Name" />
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">@c.Name (#@c.Id)</h6>
+                        <small>HP: @c.BaseHP | Atk: @c.BaseAttack | Def: @c.BaseDefense</small>
+                        <div class="mt-2">
+                            <a href="/character/@c.Id" class="btn btn-sm btn-primary">Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="text-center my-3">
+        <button class="btn btn-outline-primary" disabled="@_loading" @onclick="LoadMore">
+            @(_loading ? "Loading…" : "Load more")
+        </button>
+    </div>
+}
+
+@code {
+    private readonly List<Character> _characters = new();
+    private bool _loading;
+    private string? _error;
+    private int _offset = 0;
+    private const int _pageSize = 40;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMore();                 // first 40
+        // await LoadMore();              // uncomment to pre-load 80
+    }
+
+    private async Task LoadMore()
+    {
+        try
+        {
+            _loading = true;
+            var page = await CharacterService.GetPageAsync(_offset, _pageSize);
+            if (page.Count == 0) { _error = "No results (maybe rate-limited). Try again."; }
+            _characters.AddRange(page);
+            _offset += _pageSize;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Load failed: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

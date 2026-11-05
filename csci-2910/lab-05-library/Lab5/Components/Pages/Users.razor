@@ -1,0 +1,113 @@
+@page "/users"
+@rendermode InteractiveServer
+@using Lab5.Models
+@using Lab5.Services
+@inject ILibraryService LibraryService
+
+<PageTitle>Users</PageTitle>
+
+<h3>User Management</h3>
+
+<EditForm Model="userModel" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="userModel.Name" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="userModel.Email" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        @(isEditing ? "Update User" : "Add User")
+    </button>
+
+    @if (isEditing)
+    {
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CancelEdit">Cancel</button>
+    }
+</EditForm>
+
+<hr />
+
+<h4>All Users</h4>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in users)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.Name</td>
+                <td>@user.Email</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => EditUser(user)">Edit</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteUser(user.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<User> users = new();
+    private User userModel = new();
+    private bool isEditing = false;
+
+    protected override void OnInitialized()
+    {
+        users = LibraryService.GetUsers();
+    }
+
+    private void HandleSubmit()
+    {
+        if (isEditing)
+        {
+            LibraryService.EditUser(userModel);
+        }
+        else
+        {
+            LibraryService.AddUser(userModel);
+        }
+
+        users = LibraryService.GetUsers();
+        userModel = new User();
+        isEditing = false;
+    }
+
+    private void EditUser(User user)
+    {
+        userModel = new User
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email
+        };
+
+        isEditing = true;
+    }
+
+    private void DeleteUser(int id)
+    {
+        LibraryService.DeleteUser(id);
+        users = LibraryService.GetUsers();
+    }
+
+    private void CancelEdit()
+    {
+        userModel = new User();
+        isEditing = false;
+    }
+}

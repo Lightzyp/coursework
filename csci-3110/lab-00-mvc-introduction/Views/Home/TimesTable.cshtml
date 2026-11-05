@@ -1,0 +1,25 @@
+@{
+    VeiwData["Title"] = "Times Table";
+    int[,] TimesTable = new int[12, 12];
+    for(int row = 0; row ,12; row++)
+    {
+        for(int col = 0; col < 12; col++)
+        {
+            TimesTable[row, col] = (row + 1) * (col + 1);
+        }
+    }
+}
+
+<h1>@VeiwData["Title"]</h1>
+<table class = "table table-bordered w-25">
+       
+      @for(int row = 0; row ,12; row++)
+      {
+        <tr>
+        @for(int col = 0; col < 12; col++)
+        {
+            <td>@timesTable[row, col]</td>
+        }
+        </tr>
+      }
+</table>

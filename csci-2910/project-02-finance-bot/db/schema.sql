@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS watchlists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    symbol TEXT NOT NULL
+);

@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Load Dictionary";
+}
+
+<h1>Load Dictionary</h1>
+
+<form asp-action="DoUpload" 
+      method="post"
+      enctype="multipart/form-data">
+
+
+    <div class="form-group">
+        <label for="files">Choose the file to load:</label>
+        <input type="file"
+               id="files" 
+               name="files" 
+               accept=".csv"
+               class="form-control" />
+    </div>
+
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-primary">Load</button>
+    </div>
+</form>

@@ -1,0 +1,23 @@
+﻿@page "/"
+@namespace Project3.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Components.Web
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    <title>Project 3 - War</title>
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/site.css" rel="stylesheet" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    <div id="app">
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+    </div>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

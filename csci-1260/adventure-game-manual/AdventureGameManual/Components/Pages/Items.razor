@@ -1,0 +1,23 @@
+﻿<h3></h3>
+
+@page "/items"
+@using AdventureGameManual.Models
+@inject AdventureGameManual.Services.GameDataService Data
+
+<PageTitle>Items</PageTitle>
+<h1>Items</h1>
+
+@foreach (var group in Data.ItemsByType())
+{
+    <h3>@group.Key</h3>
+    <ul>
+        @foreach (var item in group)
+        {
+            <li><a href="@($"/items/{item.Id}")">@item.Name</a></li>
+        }
+    </ul>
+}
+
+@code {
+
+}

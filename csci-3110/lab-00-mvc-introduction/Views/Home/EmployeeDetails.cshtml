@@ -1,0 +1,12 @@
+@{
+    VeiwData["Title"] ="Employee Details"
+    var employee = new Employee()
+    {
+        Name = "Jeff"
+        Department = Department.Engineering  
+    };
+}
+
+<h1>@viewData["Title"]</h1>
+<p><strong>Name:</strong>@employee.Name</p>
+<p><strong>Department:</strong>@employee.Department</p>

@@ -1,0 +1,237 @@
+﻿<h3>War</h3>
+
+@page "/"
+@rendermode InteractiveServer
+@using Project_3.Services
+@inject Project_3.Services.GameEngine Engine
+@implements IDisposable
+
+<h1>War (Project 3)</h1>
+
+
+
+
+
+<div class="controls" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+    <label>Players (2–4): </label>
+    <input type="number" min="2" max="4" @bind="PlayerCount" />
+
+    <button @onclick="StartGame" disabled="@Engine.GameActive">Start Game</button>
+    <button @onclick="PlayOneRound" disabled="@(!Engine.GameActive)">Play Round</button>
+    <label><input type="checkbox" @bind="AutoPlay" /> Auto-Play</label>
+
+    <!---always enabled -->
+    <button @onclick="Reset">Reset</button>
+
+</div>
+
+
+@if (!string.IsNullOrEmpty(Engine.WinnerName))
+{
+    <h3 style="color:green">Winner: @Engine.WinnerName</h3>
+}
+
+<h3>Status</h3>
+<ul>
+    @foreach (var name in Engine.PlayerOrder)
+    {
+        <li>@name: @Engine.HandCount(name) cards</li>
+    }
+</ul>
+
+<h3>Leaderboard (this session)</h3>
+<table>
+    <thead>
+        <tr>
+            <th style="text-align:left;padding-right:1rem;">Player</th>
+            <th style="text-align:right;padding-right:1rem;">Wins</th>
+            <th style="text-align:right;padding-right:1rem;">Games</th>
+            <th style="text-align:right;">Win Rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Engine.PlayerOrder)
+        {
+            var wins = _wins.GetValueOrDefault(p);
+            var games = _games.GetValueOrDefault(p);
+            var rate = WinRate(p);
+            <tr>
+                <td style="text-align:left;padding-right:1rem;">@p</td>
+                <td style="text-align:right;padding-right:1rem;">@wins</td>
+                <td style="text-align:right;padding-right:1rem;">@games</td>
+                <td style="text-align:right;">@rate.ToString("P0")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+
+    // --- STATS (wins & win rate) ---
+    private readonly Dictionary<string, int> _wins = new();
+    private readonly Dictionary<string, int> _games = new();
+
+    private void EnsurePlayersInStats()
+    {
+        foreach (var p in Engine.PlayerOrder)
+        {
+            if (!_wins.ContainsKey(p)) _wins[p] = 0;
+            if (!_games.ContainsKey(p)) _games[p] = 0;
+        }
+    }
+
+    private bool RecordGameResultIfFinished()
+    {
+        // Only record when a game actually ended
+        if (!Engine.GameActive && !string.IsNullOrEmpty(Engine.WinnerName))
+        {
+            EnsurePlayersInStats();
+
+            // Everyone who participated gets a "game played"
+            foreach (var p in Engine.PlayerOrder)
+                _games[p]++;
+
+            // Winner gets a win
+            _wins[Engine.WinnerName!]++;
+
+            // tell caller that UI needs refresh
+            return true;
+        }
+        return false;
+    }
+
+
+    private double WinRate(string player)
+    {
+        return (_games.TryGetValue(player, out var g) && g > 0)
+            ? (double)_wins.GetValueOrDefault(player) / g
+            : 0.0;
+    }
+
+
+
+    private int PlayerCount { get; set; } = 2;
+    private bool AutoPlay { get; set; }
+
+    private System.Timers.Timer? _timer;
+
+    private void StartGame()
+    {
+        var names = Enumerable.Range(1, Math.Clamp(PlayerCount, 2, 4))
+                              .Select(i => $"Player {i}");
+
+        Engine.StartNewGame(names);
+
+        // ADD THIS
+        EnsurePlayersInStats();
+
+        StateHasChanged();
+
+        if (AutoPlay)
+            StartAuto();
+    }
+
+    private void PlayOneRound()
+    {
+        Engine.PlayOneRound();
+
+        var changed = RecordGameResultIfFinished();
+        if (changed)
+        {
+            // we're already on the UI thread here
+            StateHasChanged();
+            return;
+        }
+
+        StateHasChanged();
+    }
+
+
+
+
+    private void Reset()
+    {
+        // Stop autoplay if running
+        _timer?.Stop();
+        _timer?.Dispose();
+        _timer = null;
+
+        var _ = RecordGameResultIfFinished();
+
+
+        // If a game just ended and wasn’t recorded yet, capture it now
+        RecordGameResultIfFinished();
+
+        // Start a brand-new game
+        PlayerCount = Math.Clamp(PlayerCount, 2, 4);
+        var names = Enumerable.Range(1, PlayerCount).Select(i => $"Player {i}");
+        Engine.StartNewGame(names);
+
+        // Ensure players are present in the stats tables
+        EnsurePlayersInStats();
+
+        // If Auto-Play is checked, resume autoplay
+        if (AutoPlay) StartAuto();
+
+        StateHasChanged();
+    }
+
+
+    private void StartAuto()
+    {
+        _timer?.Dispose();
+        _timer = new System.Timers.Timer(120); // ~8 rounds/sec
+
+        _timer.Elapsed += async (_, __) =>
+        {
+            if (!Engine.GameActive)
+            {
+                var changed = RecordGameResultIfFinished();
+
+                // always marshal to the UI thread for rendering
+                await InvokeAsync(StateHasChanged);
+
+                _timer?.Stop();
+                _timer?.Dispose();
+                _timer = null;
+                return;
+            }
+
+            Engine.PlayOneRound();
+
+            var ended = RecordGameResultIfFinished();
+
+            // update UI after every round; this runs on the timer thread
+            await InvokeAsync(StateHasChanged);
+
+            if (ended)
+            {
+                _timer?.Stop();
+                _timer?.Dispose();
+                _timer = null;
+            }
+        };
+
+        _timer.AutoReset = true;
+        _timer.Start();
+    }
+
+
+
+
+    protected override void OnParametersSet()
+    {
+        if (!AutoPlay && _timer is not null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

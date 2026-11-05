@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DailyTaskTracker": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

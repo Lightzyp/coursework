@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Review Day Lab": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

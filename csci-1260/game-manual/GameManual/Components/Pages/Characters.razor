@@ -1,0 +1,51 @@
+﻿<h3>Characters</h3>
+
+@page "/Characters"
+@using Microsoft.AspNetCore.Components
+@using GameManual.Models
+@inject GameManual.Services.CharacterService CharacterService
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Character? character;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try { character = await CharacterService.GetByIdAsync(id); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+}
+
+@if (_loading)
+{
+    <p>Loading…</p>
+}
+else if (_error is not null)
+{
+
+    <div class="alert alert-danger">@_error</div>
+}
+else if (character is null)
+{
+
+    <p>Not found.</p>
+}
+else
+{
+    <h2>@character.Name (#@character.Id)</h2>
+    <img src="@character.ImageUrl" style="width:300px;" />
+    <p>@character.Description</p>
+    <p><strong>Base HP:</strong> @character.BaseHP</p>
+    <p><strong>Base Attack:</strong> @character.BaseAttack</p>
+    <p><strong>Base Defense:</strong> @character.BaseDefense</p>
+    <a class="btn btn-secondary" href="/">Back</a>
+}
+
+
+
+@code {
+
+}

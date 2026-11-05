@@ -1,0 +1,112 @@
+@page "/"
+@rendermode InteractiveServer
+@inject Project_4.Services.PasswordManagerService PasswordService
+@inject NavigationManager Navigation
+
+<PageTitle>Vaultly Overview</PageTitle>
+
+<AuthGuard>
+    <section class="page-heading">
+        <div>
+            <span class="eyebrow">Overview</span>
+            <h1>Your password vault</h1>
+            <p>A simple view of your encrypted credentials and the actions you use most.</p>
+        </div>
+        <a class="btn btn-primary" href="/add"><i class="bi bi-plus-lg"></i> Add password</a>
+    </section>
+
+    @if (!string.IsNullOrEmpty(actionMessage))
+    {
+        <div class="notice success"><i class="bi bi-check-circle-fill"></i><span>@actionMessage</span></div>
+    }
+
+    <section class="stat-grid">
+        <article class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-key-fill"></i></div>
+            <div>
+                <span>Saved credentials</span>
+                <strong>@PasswordService.GetAll().Count</strong>
+                <small>Encrypted in your local vault</small>
+            </div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-shield-check"></i></div>
+            <div>
+                <span>Vault status</span>
+                <strong>Protected</strong>
+                <small>AES-256-GCM encryption active</small>
+            </div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-clock-history"></i></div>
+            <div>
+                <span>Auto-lock</span>
+                <strong>5 minutes</strong>
+                <small>Locks after inactivity</small>
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Quick actions</span>
+                    <h2>Keep your vault current</h2>
+                </div>
+            </div>
+            <div class="action-list">
+                <a class="action-card" href="/add">
+                    <span class="action-icon purple"><i class="bi bi-plus-lg"></i></span>
+                    <span><strong>Save a new login</strong><small>Add a site, username, and strong password.</small></span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a class="action-card" href="/view">
+                    <span class="action-icon blue"><i class="bi bi-shield-exclamation"></i></span>
+                    <span><strong>Scan for leaked passwords</strong><small>Review saved passwords against known leak data.</small></span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a class="action-card" href="/import">
+                    <span class="action-icon amber"><i class="bi bi-browser-chrome"></i></span>
+                    <span><strong>Import from Chrome</strong><small>Encrypt passwords exported from Chrome Password Manager.</small></span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <button class="action-card" @onclick="BackupVault">
+                    <span class="action-icon green"><i class="bi bi-download"></i></span>
+                    <span><strong>Create encrypted backup</strong><small>Save a portable encrypted copy on your desktop.</small></span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </article>
+
+        <article class="panel security-panel">
+            <span class="eyebrow">Security</span>
+            <h2>Your vault stays local</h2>
+            <p>Vaultly encrypts your credentials before writing them to disk. Use the lock button whenever you leave your computer.</p>
+            <div class="security-points">
+                <span><i class="bi bi-check-circle-fill"></i> Encrypted at rest</span>
+                <span><i class="bi bi-check-circle-fill"></i> Master password required</span>
+                <span><i class="bi bi-check-circle-fill"></i> Automatic inactivity lock</span>
+            </div>
+            <button class="btn btn-outline-danger mt-3" @onclick="LockNow"><i class="bi bi-lock-fill"></i> Lock vault now</button>
+        </article>
+    </section>
+</AuthGuard>
+
+@code {
+    private string? actionMessage;
+
+    private void LockNow()
+    {
+        PasswordService.Lock();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void BackupVault()
+    {
+        PasswordService.BackupToDesktop();
+        actionMessage = string.IsNullOrEmpty(PasswordService.LastError)
+            ? "Encrypted backup saved to your desktop."
+            : PasswordService.LastError;
+    }
+}

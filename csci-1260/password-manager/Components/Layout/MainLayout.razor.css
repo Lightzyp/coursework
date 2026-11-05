@@ -1,0 +1,89 @@
+.page-shell {
+    min-height: 100vh;
+    display: flex;
+    background: #f6f8fc;
+}
+
+.app-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar {
+    width: 248px;
+    min-height: 100vh;
+    background: #101828;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+}
+
+.top-row {
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #475467;
+    background: rgba(255, 255, 255, 0.86);
+    border-bottom: 1px solid #eaecf0;
+    backdrop-filter: blur(14px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.top-status {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #067647;
+}
+
+.top-status .bi {
+    font-size: 1rem;
+}
+
+.top-meta {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #667085;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+    .page-shell {
+        display: block;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: relative;
+    }
+
+    .top-row {
+        display: none;
+    }
+}
+
+#blazor-error-ui {
+    background: #fffaeb;
+    bottom: 0;
+    box-shadow: 0 -1px 3px rgba(16, 24, 40, 0.12);
+    display: none;
+    left: 0;
+    padding: 0.75rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.85rem;
+    top: 0.6rem;
+}

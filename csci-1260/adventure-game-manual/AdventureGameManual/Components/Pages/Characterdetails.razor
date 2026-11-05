@@ -1,0 +1,31 @@
+﻿<h3>Characterdetails</h3>
+@page "/characters/{id:int}"
+@using AdventureGameManual.Models
+@inject AdventureGameManual.Services.GameDataService Data
+
+
+@code {
+    [Parameter] public int id { get; set; }
+    Character? character;
+    protected override void OnParametersSet() => character = Data.GetCharacter(id);
+}
+
+@if (character is null)
+{
+    <h1>Character Not Found</h1>
+}
+else
+{
+    <PageTitle>@character.Name</PageTitle>
+    <h1>@character.Name</h1>
+    <img src="@character.ImageUrl" alt="@character.Name" style="max-width:420px; border-radius:12px;" />
+    <p>@character.Description</p>
+
+    <h3>Stats</h3>
+    <ul>
+        <li>HP: @character.HP</li>
+        <li>Attack: @character.Attack</li>
+        <li>Defense: @character.Defense</li>
+        <li>Type: @character.Type</li>
+    </ul>
+}

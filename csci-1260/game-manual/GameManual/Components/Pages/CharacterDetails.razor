@@ -1,0 +1,118 @@
+﻿<h3>CharacterDetails</h3>
+@page "/character/{id:int}"
+@using Microsoft.AspNetCore.Components
+@using GameManual.Models
+@inject GameManual.Services.CharacterService CharacterService
+@inject GameManual.Services.NoteService NoteService
+
+<h2>Pokémon Details</h2>
+
+@if (_loading)
+{
+    <p>Loading…</p>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_character is null)
+{
+    <p>Not found.</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>@_character.Name (#@_character.Id)</h3>
+            <img src="@_character.ImageUrl" style="width:300px;" alt="@_character.Name" />
+            <p><strong>HP:</strong> @_character.BaseHP</p>
+            <p><strong>Attack:</strong> @_character.BaseAttack</p>
+            <p><strong>Defense:</strong> @_character.BaseDefense</p>
+            <a class="btn btn-secondary" href="/">Back</a>
+        </div>
+
+        <div class="col-lg-6">
+            <h4 class="mt-3 mt-lg-0">Notes for @_character.Name</h4>
+
+            <div class="mb-3">
+                <input class="form-control mb-2" placeholder="Note title" @bind="_title" />
+                <textarea class="form-control mb-2" rows="3" placeholder="Write a note..." @bind="_content"></textarea>
+                <button class="btn btn-success" @onclick="Create">Add Note</button>
+            </div>
+
+            @foreach (var n in _notes)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <input class="form-control mb-2" @bind="n.Title" />
+                        <textarea class="form-control mb-2" rows="3" @bind="n.Content"></textarea>
+                        <button class="btn btn-primary me-2" @onclick="() => Save(n)">Save</button>
+                        <button class="btn btn-danger" @onclick="() => Delete(n.Id)">Delete</button>
+                        <div class="text-muted mt-2">
+                            Created: @n.CreatedAt:u
+                            @if (n.UpdatedAt is not null)
+                            {
+                                <span> • Updated: @n.UpdatedAt:u</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    private Character? _character;
+    private bool _loading = true;
+    private string? _error;
+
+    private List<Note> _notes = new();
+    private string _title = "";
+    private string _content = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true; _error = null; _character = null; _notes = new();
+        try
+        {
+            _character = await CharacterService.GetByIdAsync(id);
+            if (_character is null)
+            {
+                _error = $"No Pokémon found for id {id}.";
+                return;
+            }
+            _notes = NoteService.GetAllForPokemon(id).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load details: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    void Create()
+    {
+        if (string.IsNullOrWhiteSpace(_title)) return;
+        var n = NoteService.Create(id, _title, _content);
+        _notes.Insert(0, n);
+        _title = ""; _content = "";
+    }
+
+    void Save(Note n)
+    {
+        NoteService.Update(n);
+        _notes = NoteService.GetAllForPokemon(id).ToList();
+    }
+
+    void Delete(int noteId)
+    {
+        NoteService.Delete(noteId);
+        _notes.RemoveAll(x => x.Id == noteId);
+    }
+}

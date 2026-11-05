@@ -1,0 +1,38 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject Project3.Services.GameService Game
+
+<h1>War (Project 3)</h1>
+
+<div>
+    <label>Players (2–4): </label>
+    <input type="number" min="2" max="4" @bind="playerCount" style="width:60px" />
+    <button @onclick="StartGame" disabled="@Game.IsActive">Start Game</button>
+    <button @onclick="PlayRound" disabled="@( !Game.IsActive || Game.HasWinner )">Play Round</button>
+</div>
+
+@if (Game.HasWinner)
+{
+    <h3>Winner: @Game.WinnerName</h3>
+}
+
+<ul>
+    @foreach (var name in Game.PlayerOrder)
+    {
+        <li>@name: @Game.PlayerHands[name].Count cards</li>
+    }
+</ul>
+
+@code {
+    private int playerCount = 2;
+
+    private void StartGame()
+    {
+        Game.StartNewGame(playerCount);
+    }
+
+    private void PlayRound()
+    {
+        Game.PlayOneRound();
+    }
+}

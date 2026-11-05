@@ -1,0 +1,123 @@
+@page "/books"
+@rendermode InteractiveServer
+@using Lab5.Models
+@using Lab5.Services
+@inject ILibraryService LibraryService
+
+<PageTitle>Books</PageTitle>
+
+<h3>Book Management</h3>
+
+<EditForm Model="bookModel" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <InputText class="form-control" @bind-Value="bookModel.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Author</label>
+        <InputText class="form-control" @bind-Value="bookModel.Author" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ISBN</label>
+        <InputText class="form-control" @bind-Value="bookModel.ISBN" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        @(isEditing ? "Update Book" : "Add Book")
+    </button>
+
+    @if (isEditing)
+    {
+        <button type="button" class="btn btn-secondary ms-2" @onclick="CancelEdit">Cancel</button>
+    }
+</EditForm>
+
+<hr />
+
+<h4>All Books</h4>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>ISBN</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in books)
+        {
+            <tr>
+                <td>@book.Id</td>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td>@book.ISBN</td>
+                <td>@(LibraryService.IsBookBorrowed(book.Id) ? "Borrowed" : "Available")</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-2" @onclick="() => EditBook(book)">Edit</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteBook(book.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Book> books = new();
+    private Book bookModel = new();
+    private bool isEditing = false;
+
+    protected override void OnInitialized()
+    {
+        books = LibraryService.GetBooks();
+    }
+
+    private void HandleSubmit()
+    {
+        if (isEditing)
+        {
+            LibraryService.EditBook(bookModel);
+        }
+        else
+        {
+            LibraryService.AddBook(bookModel);
+        }
+
+        books = LibraryService.GetBooks();
+        bookModel = new Book();
+        isEditing = false;
+    }
+
+    private void EditBook(Book book)
+    {
+        bookModel = new Book
+        {
+            Id = book.Id,
+            Title = book.Title,
+            Author = book.Author,
+            ISBN = book.ISBN
+        };
+
+        isEditing = true;
+    }
+
+    private void DeleteBook(int id)
+    {
+        LibraryService.DeleteBook(id);
+        books = LibraryService.GetBooks();
+    }
+
+    private void CancelEdit()
+    {
+        bookModel = new Book();
+        isEditing = false;
+    }
+}

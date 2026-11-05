@@ -1,0 +1,19 @@
+# Local configuration and generated files
+.env
+.env.*
+!.env.example
+**/bin/
+**/obj/
+**/.vs/
+**/__pycache__/
+**/node_modules/
+**/.venv/
+**/venv/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log

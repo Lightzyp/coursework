@@ -1,0 +1,103 @@
+<h3>Car Selection</h3>
+
+<div>
+    <label for="carBrand">Select Your Car Brand:</label>
+    <select id="carBrand" class="form-select" @bind="SelectedBrand">
+        <option value="" disabled>Select a brand</option>
+        @foreach (var brand in CarBrands)
+        {
+            <option value="@brand">@brand</option>
+        }
+    </select>
+</div>
+
+@if (!string.IsNullOrEmpty(SelectedBrand))
+{
+    <div>
+        <label for="carModel">Enter Your Car Model:</label>
+        <input id="carModel" @bind="CarModel" class="form-control" placeholder="e.g., Civic, Corolla" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="SubmitToReddit">Submit to Reddit</button>
+}
+
+<p>
+    Selected Car: <strong>@SelectedBrand @CarModel</strong>
+</p>
+
+@code {
+    private List<string> CarBrands = new()
+    {
+        "Toyota", "Ford", "Chevrolet", "Honda", "Nissan", "BMW", "Mercedes-Benz", "Tesla", "Volkswagen", "Hyundai",
+        "Kia", "Audi", "Subaru", "Mazda", "Jeep", "Porsche", "Volvo", "Jaguar", "Lexus", "Mitsubishi"
+    };
+
+    private string SelectedBrand { get; set; }
+    private string CarModel { get; set; }
+
+    private HttpClient Http { get; set; }
+
+    [Inject]
+    public IHttpClientFactory HttpClientFactory { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Http = HttpClientFactory.CreateClient();
+    }
+
+    private async Task SubmitToReddit()
+    {
+        if (string.IsNullOrEmpty(SelectedBrand) || string.IsNullOrEmpty(CarModel))
+        {
+            return; // No data to post
+        }
+
+        var postData = new
+        {
+            title = $"Check out my car: {SelectedBrand} {CarModel}!",
+            text = "I just selected my car using this awesome Blazor app!",
+            sr = "test" // Target subreddit
+        };
+
+        var clientId = "REDACTED_CONFIGURE_LOCALLY";
+        var clientSecret = "REDACTED_CONFIGURE_LOCALLY";
+        var accessToken = await GetRedditAccessToken(clientId, clientSecret);
+
+        Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+        var response = await Http.PostAsJsonAsync("https://oauth.reddit.com/api/submit", postData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Post successful: " + result);
+        }
+        else
+        {
+            Console.WriteLine("Failed to post to Reddit.");
+        }
+    }
+
+    private async Task<string> GetRedditAccessToken(string clientId, string clientSecret)
+    {
+        var authString = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+        Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authString);
+
+        var tokenData = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("grant_type", "password"),
+            new KeyValuePair<string, string>("username", "YourRedditUsername"),
+            new KeyValuePair<string, string>("password", "YourRedditPassword")
+        });
+
+        var response = await Http.PostAsync("https://www.reddit.com/api/v1/access_token", tokenData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonResponse = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            return jsonResponse["access_token"];
+        }
+
+        return null;
+    }
+}

@@ -1,0 +1,47 @@
+﻿<h3>ItemDetails</h3>
+
+@page "/item/{id:int}"
+@using Microsoft.AspNetCore.Components
+@using GameManual.Models
+@inject GameManual.Services.ItemService ItemService
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Item? item;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try { item = await ItemService.GetByIdAsync(id); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+}
+
+@if (_loading)
+{
+    <p>Loading…</p>
+}
+else if (_error is not null)
+{
+
+    <div class="alert alert-danger">@_error</div>
+}
+else if (item is null)
+{
+
+    <p>Not found.</p>
+}
+else
+{
+    <h2>@item.Name</h2>
+    <img src="@item.ImageUrl" style="width:300px;" />
+    <p>@item.Description</p>
+    <a class="btn btn-secondary" href="/items">Back</a>
+}
+
+
+@code {
+
+}

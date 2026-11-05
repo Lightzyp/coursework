@@ -1,0 +1,147 @@
+﻿@page "/"
+
+@using InClass.Services
+
+@inject Algorithms helper
+
+
+
+Items:
+
+<ol>
+
+    @foreach (int item in values)
+
+    {
+
+        <li>@item</li>
+
+    }
+
+</ol>
+<br />
+
+
+
+<input @bind=valueList />
+<button @onclick=NewList>Create New List</button>
+
+(comma separated list)
+<br />
+
+<input @bind=toFindIter />
+<button @onclick=IterativeButton>Iterative Search</button>
+
+@iterResult
+<br />
+
+<input @bind=toFindBin />
+<button @onclick=BinaryButton>Binary Search</button>
+
+@binResult
+<br />
+
+<button @onclick=BubbleButton>Bubble Sort</button>
+
+
+
+@code {
+
+    List<int> values { get; set; } = new List<int>();
+
+    string valueList { get; set; }
+
+    int toFindIter { get; set; }
+
+    int toFindBin { get; set; }
+
+
+
+    string iterResult { get; set; }
+
+    string binResult { get; set; }
+
+
+
+    protected async override Task OnInitializedAsync()
+
+    {
+
+        Random rand = new Random();
+
+
+
+        for (int i = 0; i < 10; i++)
+
+        {
+
+            values.Add(rand.Next(1, 100));
+
+        }
+
+    }
+
+
+
+    public void NewList()
+
+    {
+
+        string[] items = valueList.Split(',');
+
+
+
+        values.Clear();
+
+
+
+        foreach (string item in items)
+
+        {
+
+            values.Add(int.Parse(item));
+
+        }
+
+    }
+
+
+
+    public void IterativeButton()
+
+    {
+
+        int result = helper.IterativeSearch(toFindIter, values);
+
+        iterResult = result >= 0 ? $"Your item was found at {result + 1}" :
+
+        "Your item is not in the list";
+
+    }
+
+
+
+    public void BinaryButton()
+
+    {
+
+        int result = helper.BinarySearch(toFindIter, values);
+
+        binResult = result >= 0 ? $"Your item was found at {result + 1}" :
+
+        "Your item is not in the list";
+
+    }
+
+
+
+    public void BubbleButton()
+
+    {
+
+        helper.BubbleSort(values);
+
+    }
+
+}
+

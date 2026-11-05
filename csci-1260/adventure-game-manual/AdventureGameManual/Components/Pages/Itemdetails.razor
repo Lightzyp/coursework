@@ -1,0 +1,30 @@
+﻿
+@page "/items/{id:int}"
+@using AdventureGameManual.Models
+@inject AdventureGameManual.Services.GameDataService Data
+
+
+@code {
+    [Parameter] public int id { get; set; }
+    Item? item;
+    protected override void OnParametersSet() => item = Data.GetItem(id);
+}
+
+@if (item is null)
+{
+    <h1>Item Not Found</h1>
+}
+else
+{
+    <PageTitle>@item.Name</PageTitle>
+    <h1>@item.Name</h1>
+    <img src="@item.ImageUrl" alt="@item.Name" style="max-width:420px; border-radius:12px;" />
+    <p>@item.Description</p>
+
+    <h3>Stats</h3>
+    <ul>
+        <li>Type: @item.Type</li>
+        <li>Power: @item.Power</li>
+        <li>Value: @item.Value</li>
+    </ul>
+}

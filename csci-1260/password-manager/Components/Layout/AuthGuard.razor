@@ -1,0 +1,21 @@
+﻿@inject Project_4.Services.PasswordManagerService PasswordService
+@inject NavigationManager Navigation
+
+@if (PasswordService.IsUnlocked)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!PasswordService.IsUnlocked)
+        {
+            await Task.Delay(1);
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

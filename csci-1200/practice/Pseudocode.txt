@@ -1,0 +1,16 @@
+BEGIN
+    SET population = 1000
+    SET growthRate = 0.02
+    SET newInhabitants = 50
+    SET target = 1200
+    SET years = 0
+
+    WHILE population < target
+        population = population + (population * growthRate) + newInhabitants
+        years = years + 1
+    END WHILE
+
+    OUTPUT years
+END
+
+The town will need 3 years to reach the population greater then 1,200

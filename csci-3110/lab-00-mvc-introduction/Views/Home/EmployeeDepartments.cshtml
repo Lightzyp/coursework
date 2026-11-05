@@ -1,0 +1,18 @@
+@{
+    VeiwData["Title"] ="Employee Departments";
+    var employee = new Employee[]
+    {
+          new Employee() { Name= "Alice", Department = Department.Sales },
+          new Employee() { Name= "Bob", Department = Department.Marketing },
+          new Employee() { Name= "Dan", Department = Department.Hr },
+          new Employee() { Name= "Charile", Department = Department.Finance },
+          new Employee() { Name= "Fran", Department = Department.Engineering }
+    };
+}
+
+<h1>@VeiwData["Title"]</h1>
+@foreach(Employee emp in employees)
+{
+    <p><strong>Name:</strong>@employee.Name</p>
+    <p><strong>Department:</strong>@employee.Department</p>
+}
